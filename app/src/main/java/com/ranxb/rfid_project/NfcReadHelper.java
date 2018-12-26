@@ -153,8 +153,11 @@ public class NfcReadHelper {
                             callback.error();
                         }
                     } catch (Exception e) {
+
+                        System.out.print(e);
                         callback.error();
                         e.printStackTrace();
+
                     } finally {
                         try {
                             mfc.close();
