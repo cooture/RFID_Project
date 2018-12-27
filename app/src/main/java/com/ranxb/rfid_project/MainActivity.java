@@ -9,12 +9,14 @@ import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,16 +27,79 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView mTextMessage;
+    private TextView mTextMessage,showname,showphone,showprovice,showcity;
     private int flag = 0;
     private EditText edit_name;
+    private EditText edit_phone;
+    private EditText edit_city;
+
+    private LinearLayout edit_layout,show_data;
+
     private Spinner spinner_provice;
     private ArrayAdapter<String> adapter = null;
-    private static final String [] provice ={"Beijing","Shanghai","Shenzhen","Tianjin"};
+    private static final String [] provice ={"Beijing","Shanghai","Shenzhen","Tianjin","Taiwan"};
 
     private String p_provice,p_city,p_name,p_phone;
     private String i_provice,i_city,i_name,i_phone;
     private String whole_data;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        getSupportActionBar().hide();
+        init();
+        initData();
+    }
+
+    private void init() {
+        mTextMessage = (TextView) findViewById(R.id.message);
+        edit_name = findViewById(R.id.p_name);
+        edit_phone = findViewById(R.id.p_phone);
+        edit_city = findViewById(R.id.p_city);
+        showname = findViewById(R.id.showname);
+        showphone = findViewById(R.id.showphone);
+        showprovice = findViewById(R.id.showprovice);
+        showcity = findViewById(R.id.showcity);
+
+        edit_layout = findViewById(R.id.edit_layout);
+        show_data = findViewById(R.id.showdata);
+
+        spinner_provice = findViewById(R.id.spinner_provice);
+        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+
+
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,provice);
+        //设置下拉列表风格
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //将适配器添加到spinner中去
+        spinner_provice.setAdapter(adapter);
+        spinner_provice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> arg0, View arg1,
+                                       int arg2, long arg3) {
+                // TODO Auto-generated method stub
+                try {
+                    p_provice = ""+((TextView)arg1).getText();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+//                toToast(""+((TextView)arg1).getText());
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+                // TODO Auto-generated method stub
+
+            }
+        });
+
+
+    }
+
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -43,15 +108,28 @@ public class MainActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_home:
-                    mTextMessage.setText(R.string.title_home);
+//                    mTextMessage.setText(R.string.title_home);
+                    show_data.setVisibility(View.VISIBLE);
+                    edit_layout.setVisibility(View.GONE);
+                    mTextMessage.setText("");
+                    mTextMessage.setVisibility(View.GONE);
                     flag = 0;
+
+
                     return true;
                 case R.id.navigation_dashboard:
-                    mTextMessage.setText(R.string.title_dashboard);
+//                    mTextMessage.setText(R.string.title_dashboard);
+                    edit_layout.setVisibility(View.VISIBLE);
+                    mTextMessage.setText("");
+                    mTextMessage.setVisibility(View.GONE);
+                    show_data.setVisibility(View.GONE);
                     flag = 1;
                     return true;
                 case R.id.navigation_notifications:
-                    mTextMessage.setText(R.string.title_notifications);
+//                    mTextMessage.setText(R.string.title_notifications);
+                    edit_layout.setVisibility(View.GONE);
+                    mTextMessage.setVisibility(View.VISIBLE);
+                    show_data.setVisibility(View.GONE);
                     flag = 2;
                     return true;
             }
@@ -79,7 +157,11 @@ public class MainActivity extends AppCompatActivity {
                 i_name = msg.getData().getString("name");
                 i_city = msg.getData().getString("city");
                 i_phone = msg.getData().getString("phone");
-                mTextMessage.setText(i_provice+"\n"+i_city+"\n"+i_name+"\n"+i_phone);
+                showname.setText(i_name);
+                showphone.setText(i_phone);
+                showprovice.setText(i_provice);
+                showcity.setText(i_city);
+//                mTextMessage.setText("info: \n"+i_provice+"\n"+i_city+"\n"+i_name+"\n"+i_phone);
             }
         }
     };
@@ -100,44 +182,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        init();
-        initData();
-    }
-
-    private void init() {
-        mTextMessage = (TextView) findViewById(R.id.message);
-        edit_name = findViewById(R.id.p_name);
-        spinner_provice = findViewById(R.id.spinner_provice);
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-
-        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,provice);
-        //设置下拉列表风格
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //将适配器添加到spinner中去
-        spinner_provice.setAdapter(adapter);
-        spinner_provice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> arg0, View arg1,
-                                       int arg2, long arg3) {
-                // TODO Auto-generated method stub
-                p_provice = ""+((TextView)arg1).getText();
-//                toToast(""+((TextView)arg1).getText());
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO Auto-generated method stub
-
-            }
-        });
 
 
-    }
+
 
 
     /**
@@ -225,15 +272,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void callBack(String data) {
-//                        Bundle bundle = new Bundle();
-////                        String newdata;
-////                        newdata = decode(data);
-////                        bundle.putString("data", newdata);
-////
-////                        Message message = new Message();
-////                        message.setData(bundle);
-////                        message.what = 2;
-////                        handler.sendMessage(message);
+
                     }
 
                     @Override
@@ -253,20 +292,10 @@ public class MainActivity extends AppCompatActivity {
      * 写入数据
      */
     private void writeData(Intent intent, int block , int piece ,String data) {
-//        String password = password_text.getText().toString().trim();
-//        String data = edit_data.getText().toString().trim();
-//        if (write_block_text.getText().toString().trim().equals("")) {
-//            return;
-//        }
-//        if (write_piece_text.getText().toString().trim().equals("")) {
-//            return;
-//        }
-//        int block = Integer.parseInt(write_block_text.getText().toString().trim());
-//        int piece = Integer.parseInt(write_piece_text.getText().toString().trim());
+
         String password = null;
 
-//        int block = 5;
-//        int piece =1;
+
         NFCWriteHelper.getInstence(intent)
                 .setReadPassword(password)
                 .writeData(data, block, piece, new NFCWriteHelper.NFCCallback() {
@@ -313,8 +342,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case 1:
                 p_name = edit_name.getText().toString().trim();
-                p_city = "hahahacity";
-                p_phone = "1234556";
+                p_city = edit_city.getText().toString().trim();;
+                p_phone = edit_phone.getText().toString().trim();;
                 writeData(intent,5,1,p_provice);
                 writeData(intent,5,2,p_city);
                 writeData(intent,6,1,p_name);
