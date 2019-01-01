@@ -2,6 +2,7 @@ package com.ranxb.rfid_project;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,11 +34,11 @@ public class MainActivity extends AppCompatActivity {
     private EditText edit_phone;
     private EditText edit_city;
 
-    private LinearLayout edit_layout,show_data;
+    private LinearLayout edit_layout,show_data,check,checkcollor;
 
-    private Spinner spinner_provice;
+    private Spinner spinner_provice,spinner_provice_check;
     private ArrayAdapter<String> adapter = null;
-    private static final String [] provice ={"Beijing","Shanghai","Shenzhen","Tianjin","Taiwan"};
+    private static final String [] provice ={"Beijing","Shanghai","Shenzhen","Tianjin"};
 
     private String p_provice,p_city,p_name,p_phone;
     private String i_provice,i_city,i_name,i_phone;
@@ -64,9 +65,12 @@ public class MainActivity extends AppCompatActivity {
         showcity = findViewById(R.id.showcity);
 
         edit_layout = findViewById(R.id.edit_layout);
+        check = findViewById(R.id.check_layout);
+        checkcollor = findViewById(R.id.checkcollor);
         show_data = findViewById(R.id.showdata);
 
         spinner_provice = findViewById(R.id.spinner_provice);
+        spinner_provice_check = findViewById(R.id.spinner_provice_check);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
 
 
@@ -77,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         //将适配器添加到spinner中去
         spinner_provice.setAdapter(adapter);
+        spinner_provice_check.setAdapter(adapter);
         spinner_provice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> arg0, View arg1,
@@ -84,6 +89,27 @@ public class MainActivity extends AppCompatActivity {
                 // TODO Auto-generated method stub
                 try {
                     p_provice = ""+((TextView)arg1).getText();
+//                    toToast(p_provice);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+//                toToast(""+((TextView)arg1).getText());
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+                // TODO Auto-generated method stub
+
+            }
+        });
+        spinner_provice_check.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> arg0, View arg1,
+                                       int arg2, long arg3) {
+                // TODO Auto-generated method stub
+                try {
+                    p_provice = ""+((TextView)arg1).getText();
+//                    toToast(p_provice);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -111,8 +137,9 @@ public class MainActivity extends AppCompatActivity {
 //                    mTextMessage.setText(R.string.title_home);
                     show_data.setVisibility(View.VISIBLE);
                     edit_layout.setVisibility(View.GONE);
-                    mTextMessage.setText("");
-                    mTextMessage.setVisibility(View.GONE);
+                    check.setVisibility(View.GONE);
+//                    mTextMessage.setText("");
+//                    mTextMessage.setVisibility(View.GONE);
                     flag = 0;
 
 
@@ -120,16 +147,18 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.navigation_dashboard:
 //                    mTextMessage.setText(R.string.title_dashboard);
                     edit_layout.setVisibility(View.VISIBLE);
-                    mTextMessage.setText("");
-                    mTextMessage.setVisibility(View.GONE);
+                    check.setVisibility(View.GONE);
+//                    mTextMessage.setText("");
+//                    mTextMessage.setVisibility(View.GONE);
                     show_data.setVisibility(View.GONE);
                     flag = 1;
                     return true;
                 case R.id.navigation_notifications:
 //                    mTextMessage.setText(R.string.title_notifications);
                     edit_layout.setVisibility(View.GONE);
-                    mTextMessage.setVisibility(View.VISIBLE);
+//                    mTextMessage.setVisibility(View.VISIBLE);
                     show_data.setVisibility(View.GONE);
+                    check.setVisibility(View.VISIBLE);
                     flag = 2;
                     return true;
             }
@@ -151,7 +180,15 @@ public class MainActivity extends AppCompatActivity {
             if (msg.what == 1) {
                 toToast(msg.getData().getString("data"));
             } else if (msg.what == 2) {
-                mTextMessage.setText(msg.getData().getString("data").trim());
+//                mTextMessage.setText(msg.getData().getString("data").trim());
+                String tmp = msg.getData().getString("provice").trim();
+                if (tmp.equals(p_provice)){
+                    checkcollor.setBackgroundColor(Color.parseColor("#00FF00"));
+                    toToast("Right!");
+                }else {
+                    checkcollor.setBackgroundColor(Color.parseColor("#FF0000"));
+                    toToast("Wrong!");
+                }
             }else if (msg.what == 3){
                 i_provice = msg.getData().getString("provice");
                 i_name = msg.getData().getString("name");
@@ -199,16 +236,17 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void callBack(Map<String, List<String>> data) {
                         String text = "";
+                        Bundle bundle = new Bundle();
                         for (String key : data.keySet()) {
                             List list = data.get(key);
                             for (int i = 0; i < list.size(); i++) {
-                                String str = "第" + key + "扇区" + "第" + i + "块内容：\n" + list.get(i);
-//                                toToast(NfcReadHelper.byteToString(list.get(i)));
-                                text += str + "\n";
+                                if (key.equals("5") && i == 1){
+                                    bundle.putString("provice",decode(""+list.get(i)));
+                                }
                             }
                         }
-                        Bundle bundle = new Bundle();
-                        bundle.putString("data", text);
+
+
                         Message message = new Message();
                         message.setData(bundle);
                         message.what = 2;
@@ -337,13 +375,13 @@ public class MainActivity extends AppCompatActivity {
         switch (flag) {
             //读取数据
             case 0:
-                toToast("read");
+                toToast("Read");
                 readData(intent);
                 break;
             case 1:
                 p_name = edit_name.getText().toString().trim();
-                p_city = edit_city.getText().toString().trim();;
-                p_phone = edit_phone.getText().toString().trim();;
+                p_city = edit_city.getText().toString().trim();
+                p_phone = edit_phone.getText().toString().trim();
                 writeData(intent,5,1,p_provice);
                 writeData(intent,5,2,p_city);
                 writeData(intent,6,1,p_name);
@@ -352,8 +390,6 @@ public class MainActivity extends AppCompatActivity {
             case 2:
                 readAllData(intent);
                 break;
-
-
             default:
         }
     }
